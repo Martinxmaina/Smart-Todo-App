@@ -1,6 +1,6 @@
 # AI-Powered Todo List Application
 
-A modern, retro-themed todo list application with AI capabilities powered by Mistral AI. This application helps you manage tasks with intelligent insights, natural language processing, and automatic date detection.
+A modern todo list application with AI capabilities powered by Mistral AI. This application helps you manage tasks with intelligent insights, natural language processing, and automatic date detection.
 
 ## Features
 
