@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Todo List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8'
+                        }
+                    }
+                }
+            }
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+        }
+
+        // Check for saved dark mode preference
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('darkMode') === 'true' || (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        });
+    </script>
+</head>
+<body class="bg-white dark:bg-black min-h-screen">
+    <!-- Add this right after the opening of the container div, before the header -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="notification {{ category }} mb-4 p-4 rounded-lg border-l-4 {% if category == 'success' %}border-green-500 bg-green-100 text-green-700{% else %}border-blue-500 bg-blue-100 text-blue-700{% endif %}">
+                        <p>{{ message }}</p>
+                        <button class="close-notification float-right -mt-4">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-black dark:text-white mb-2">Smart Todo List</h1>
+            <p class="text-gray-600 dark:text-blue-400">AI-Powered Task Management</p>
+            <button onclick="toggleDarkMode()" class="mt-4 px-4 py-2 bg-gray-200 dark:bg-blue-600 text-black dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-blue-700 transition-colors">
+                <span class="dark:hidden">🌙 Dark Mode</span>
+                <span class="hidden dark:inline">☀️ Light Mode</span>
+            </button>
+        </header>
+
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-black dark:text-white mb-4">Add Task</h2>
+            <form action="/tasks" method="POST" class="space-y-4">
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+                    <input type="text" id="title" name="title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                </div>
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description (or type naturally, like "Finish project by next Friday")</label>
+                    <textarea id="description" name="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"></textarea>
+                </div>
+                <div>
+                    <label for="due_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
+                    <input type="date" id="due_date" name="due_date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors">
+                    Add Task
+                </button>
+            </form>
+        </div>
+
+        <div class="space-y-8">
+            <section>
+                <h2 class="text-2xl font-semibold text-black dark:text-white mb-4">Active Tasks</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for task in tasks %}
+                    {% if not task.completed %}
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-lg p-6 border-l-4 {% if task.priority == 3 %}border-red-500{% elif task.priority == 2 %}border-yellow-500{% else %}border-green-500{% endif %}">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-lg font-semibold text-black dark:text-white">{{ task.title }}</h3>
+                            <span class="px-2 py-1 text-xs rounded {% if task.priority == 3 %}bg-red-100 text-red-800{% elif task.priority == 2 %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %} dark:bg-opacity-20">
+                                {% if task.priority == 3 %}High{% elif task.priority == 2 %}Medium{% else %}Low{% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if task.description %}
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">{{ task.description }}</p>
+                        {% endif %}
+                        
+                        {% if task.due_date %}
+                        <p class="text-sm text-gray-500 dark:text-blue-400 mb-4">Due: {{ task.due_date.strftime('%Y-%m-%d') }}</p>
+                        {% endif %}
+                        
+                        {% if task.ai_notes %}
+                        <div class="bg-white dark:bg-gray-800 rounded p-4 mb-4">
+                            <h4 class="text-sm font-medium text-black dark:text-white mb-2">AI Insights</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ task.ai_notes }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex space-x-4">
+                            <form action="/tasks/{{ task.id }}/complete" method="POST" class="flex-1">
+                                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors">
+                                    Complete
+                                </button>
+                            </form>
+                            <form action="/tasks/{{ task.id }}/delete" method="POST" class="flex-1">
+                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+</html>
